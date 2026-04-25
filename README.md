@@ -1,4 +1,4 @@
-# Nimbus -- AWS Resource Manager
+# Nimbus - AWS Cloud AI Agent
 *AI-Powered Cloud Management CLI*
 
 Manage your AWS resources through natural language instead of the AWS console.
