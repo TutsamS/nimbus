@@ -21,12 +21,15 @@ Manage your AWS resources through natural language instead of the AWS console.
 - Delete an object from a bucket
 - Delete a bucket and all its contents
 
-**EC2 (read-only):**
+**EC2 (read-only + ops):**
 - List all EC2 instances
 - Get detailed info on a specific instance (AMI, IPs, security groups, etc.)
+- Start/Stop/Reboot instances (Stop requires confirmation)
+- Terminate instances (Terminate requires confirmation)
 
 **Safety:**
 - Destructive actions (delete bucket, delete object) require explicit y/n confirmation before execution
+- Destructive/impacting EC2 actions (stop/terminate) require explicit y/n confirmation before execution
 
 ## Prerequisites
 

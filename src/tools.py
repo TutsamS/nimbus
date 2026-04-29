@@ -274,9 +274,111 @@ class AWSToolkit:
         except ClientError as e:
             return f"Error describing instance '{instance_id}': {str(e)}"
 
+    def _parse_instance_ids(self, input_str: str) -> list[str]:
+        """Extract one or more EC2 instance IDs from free-form text.
+
+        Expected inputs include:
+        - "i-0123..., i-0456..."
+        - "i-0123..."
+        - "start i-0123... i-0456..." (agent may pass extra words)
+        """
+        instance_ids = []
+        seen = set()
+        for match in re.findall(r"\bi-[0-9a-fA-F]{8,}\b", input_str or ""):
+            iid = match.strip()
+            if iid not in seen:
+                instance_ids.append(iid)
+                seen.add(iid)
+        return instance_ids
+
+    def start_ec2_instances(self, input_str: str) -> str:
+        """Start one or more EC2 instances.
+
+        Input should contain instance IDs, e.g. "i-0123..., i-0456...".
+        """
+        try:
+            instance_ids = self._parse_instance_ids(input_str)
+            if not instance_ids:
+                return "Invalid input. Provide instance id(s), e.g. 'i-0123456789abcdef0' or 'i-..., i-...'."
+
+            response = self.ec2_client.start_instances(InstanceIds=instance_ids)
+            started = response.get("StartingInstances") or response.get("Instances") or []
+            if started:
+                instance_list = ", ".join([i.get("InstanceId", "") for i in started if i.get("InstanceId")])
+            else:
+                instance_list = ", ".join(instance_ids)
+            return f"Started EC2 instance(s): {instance_list}"
+        except ClientError as e:
+            return f"Error starting EC2 instances: {str(e)}"
+
+    def stop_ec2_instances(self, input_str: str) -> str:
+        """Stop one or more EC2 instances.
+
+        Input should contain instance IDs, e.g. "i-0123..., i-0456...".
+        """
+        try:
+            instance_ids = self._parse_instance_ids(input_str)
+            if not instance_ids:
+                return "Invalid input. Provide instance id(s), e.g. 'i-0123456789abcdef0' or 'i-..., i-...'."
+
+            response = self.ec2_client.stop_instances(InstanceIds=instance_ids)
+            stopped = response.get("StoppingInstances") or response.get("Instances") or []
+            if stopped:
+                instance_list = ", ".join([i.get("InstanceId", "") for i in stopped if i.get("InstanceId")])
+            else:
+                instance_list = ", ".join(instance_ids)
+            return f"Stopped EC2 instance(s): {instance_list}"
+        except ClientError as e:
+            return f"Error stopping EC2 instances: {str(e)}"
+
+    def reboot_ec2_instances(self, input_str: str) -> str:
+        """Reboot one or more EC2 instances.
+
+        Input should contain instance IDs, e.g. "i-0123..., i-0456...".
+        """
+        try:
+            instance_ids = self._parse_instance_ids(input_str)
+            if not instance_ids:
+                return "Invalid input. Provide instance id(s), e.g. 'i-0123456789abcdef0' or 'i-..., i-...'."
+
+            response = self.ec2_client.reboot_instances(InstanceIds=instance_ids)
+            rebooting = response.get("RebootingInstances") or response.get("Instances") or []
+            if rebooting:
+                instance_list = ", ".join([i.get("InstanceId", "") for i in rebooting if i.get("InstanceId")])
+            else:
+                instance_list = ", ".join(instance_ids)
+            return f"Reboot requested for EC2 instance(s): {instance_list}"
+        except ClientError as e:
+            return f"Error rebooting EC2 instances: {str(e)}"
+
+    def terminate_ec2_instances(self, input_str: str) -> str:
+        """Terminate one or more EC2 instances (destructive).
+
+        Input should contain instance IDs, e.g. "i-0123..., i-0456...".
+        """
+        try:
+            instance_ids = self._parse_instance_ids(input_str)
+            if not instance_ids:
+                return "Invalid input. Provide instance id(s), e.g. 'i-0123456789abcdef0' or 'i-..., i-...'."
+
+            response = self.ec2_client.terminate_instances(InstanceIds=instance_ids)
+            terminating = response.get("TerminatingInstances") or response.get("Instances") or []
+            if terminating:
+                instance_list = ", ".join([i.get("InstanceId", "") for i in terminating if i.get("InstanceId")])
+            else:
+                instance_list = ", ".join(instance_ids)
+            return f"Termination requested for EC2 instance(s): {instance_list}"
+        except ClientError as e:
+            return f"Error terminating EC2 instances: {str(e)}"
+
 
 # Tools that require user confirmation before execution
-DESTRUCTIVE_TOOLS = {"delete_s3_bucket", "delete_s3_object"}
+DESTRUCTIVE_TOOLS = {
+    "delete_s3_bucket",
+    "delete_s3_object",
+    "stop_ec2_instances",
+    "terminate_ec2_instances",
+}
 
 
 def get_aws_tools():
@@ -359,6 +461,38 @@ def get_aws_tools():
                 "Get detailed information about a specific EC2 instance including "
                 "AMI, launch time, IPs, and security groups. Input must be the "
                 "instance ID, e.g. 'i-0abc123def456'."
+            ),
+        ),
+        Tool(
+            name="start_ec2_instances",
+            func=toolkit.start_ec2_instances,
+            description=(
+                "Start one or more EC2 instances. Input should be instance id(s) "
+                "separated by commas, e.g. 'i-0123..., i-0456...'."
+            ),
+        ),
+        Tool(
+            name="stop_ec2_instances",
+            func=toolkit.stop_ec2_instances,
+            description=(
+                "Stop one or more EC2 instances. Input should be instance id(s) "
+                "separated by commas, e.g. 'i-0123..., i-0456...'."
+            ),
+        ),
+        Tool(
+            name="reboot_ec2_instances",
+            func=toolkit.reboot_ec2_instances,
+            description=(
+                "Reboot one or more EC2 instances. Input should be instance id(s) "
+                "separated by commas, e.g. 'i-0123..., i-0456...'."
+            ),
+        ),
+        Tool(
+            name="terminate_ec2_instances",
+            func=toolkit.terminate_ec2_instances,
+            description=(
+                "Terminate one or more EC2 instances (destructive). Input should be "
+                "instance id(s) separated by commas, e.g. 'i-0123..., i-0456...'."
             ),
         ),
     ]

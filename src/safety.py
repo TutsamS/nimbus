@@ -13,6 +13,8 @@ from tools import DESTRUCTIVE_TOOLS
 CONFIRMATION_MESSAGES = {
     "delete_s3_bucket": "WARNING: About to delete bucket '{target}' and ALL its contents. This cannot be undone.",
     "delete_s3_object": "About to delete object '{target}'. This cannot be undone.",
+    "stop_ec2_instances": "WARNING: About to STOP EC2 instance(s) '{target}'. This may cause downtime.",
+    "terminate_ec2_instances": "WARNING: About to TERMINATE EC2 instance(s) '{target}'. This cannot be undone.",
 }
 
 
