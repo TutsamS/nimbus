@@ -5,10 +5,10 @@ Manage your AWS resources through natural language instead of the AWS console.
 
 ## Tech Stack
 
-- **LangChain** -- connects the LLM to AWS tools so it can reason about which action to take
-- **OpenAI GPT-4o-mini** -- natural language understanding (configurable via `OPENAI_MODEL`)
-- **Boto3** -- AWS SDK for Python
-- **Docker** -- containerized deployment
+- **LangChain**: Connects the LLM to AWS tools so it can reason about which action to take
+- **OpenAI GPT-4o-mini**: Natural language understanding (configurable via `OPENAI_MODEL`)
+- **Boto3**: AWS SDK for Python
+- **Docker**: Containerized deployment
 
 ## Current Features
 
